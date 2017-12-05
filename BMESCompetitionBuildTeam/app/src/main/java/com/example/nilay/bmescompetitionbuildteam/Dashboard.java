@@ -36,14 +36,6 @@ public class Dashboard extends AppCompatActivity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, 1);
         }
-        
-        // Get the Bluetooth module device
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                BluetoothDevice mDevice = device;
-            }
-        }
 
         // Thread used for connecting Bluetooth devices
         class ConnectThread extends Thread {
@@ -79,11 +71,17 @@ public class Dashboard extends AppCompatActivity {
         }
 
         // Create the connection thread
-        Iterator<BluetoothDevice> it = pairedDevices.iterator();
-        BluetoothDevice mDevice = it.next();
+        // Get the Bluetooth module device
+        BluetoothDevice mDevice = null;
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                mDevice = device;
+            }
+        }
         ConnectThread mConnectThread = new ConnectThread(mDevice);
         mConnectThread.start();
-        
+
         // Thread used for transferring data 
         class ConnectedThread extends Thread {
             private final BluetoothSocket mmSocket;
@@ -122,6 +120,8 @@ public class Dashboard extends AppCompatActivity {
                         break;
                     }
                 }
+                ConnectedThread mConnectedThread = new ConnectedThread(mmSocket);
+                mConnectedThread.start();
             }
             public void write(byte[] bytes) {
                 try {
@@ -134,22 +134,21 @@ public class Dashboard extends AppCompatActivity {
                 } catch (IOException e) { }
             }
         }
+        // Handler code
+        Handler mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                byte[] writeBuf = (byte[]) msg.obj;
+                int begin = msg.arg1;
+                int end = (int)msg.arg2;
 
-    }
-    // Handler code
-    Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            byte[] writeBuf = (byte[]) msg.obj;
-            int begin = msg.arg1;
-            int end = (int)msg.arg2;
-
-            switch(msg.what) {
-                case 1:
-                    String writeMessage = new String(writeBuf);
-                    writeMessage = writeMessage.substring(begin, end);
-                    break;
+                switch(msg.what) {
+                    case 1:
+                        String writeMessage = new String(writeBuf);
+                        writeMessage = writeMessage.substring(begin, end);
+                        break;
+                }
             }
-        }
-    };
+        };
+    }
 }

@@ -146,6 +146,7 @@ public class Dashboard extends AppCompatActivity {
                     case 1:
                         String writeMessage = new String(writeBuf);
                         writeMessage = writeMessage.substring(begin, end);
+                        Toast.makeText(Dashboard.this, writeMessage, Toast.LENGTH_SHORT).show();
                         break;
                 }
             }

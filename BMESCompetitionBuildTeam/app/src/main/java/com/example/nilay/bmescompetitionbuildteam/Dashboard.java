@@ -37,57 +37,16 @@ public class Dashboard extends AppCompatActivity {
             startActivityForResult(enableBtIntent, 1);
         }
 
-        // Thread used for connecting Bluetooth devices
-        class ConnectThread extends Thread {
-            private final BluetoothSocket mmSocket;
-            private final BluetoothDevice mmDevice;
-            private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
-            public ConnectThread(BluetoothDevice device) {
-                BluetoothSocket tmp = null;
-                mmDevice = device;
-                try {
-                    tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
-                } catch (IOException e) { }
-                mmSocket = tmp;
-            }
-            public void run() {
-                mBluetoothAdapter.cancelDiscovery();
-                try {
-                    mmSocket.connect();
-                } catch (IOException connectException) {
-                    try {
-                        mmSocket.close();
-                    } catch (IOException closeException) {
-                    }
-                    return;
-                }
-            }
-            public void cancel() {
-                try {
-                    mmSocket.close();
-                } catch (IOException e) {
-                }
-            }
-        }
+        Toast.makeText(Dashboard.this,"ACP Pradyuman is the BEAST", Toast.LENGTH_SHORT).show();
 
-        // Create the connection thread
-        // Get the Bluetooth module device
-        BluetoothDevice mDevice = null;
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                mDevice = device;
-            }
-        }
-        ConnectThread mConnectThread = new ConnectThread(mDevice);
-        mConnectThread.start();
 
-        // Thread used for transferring data 
+        // Thread used for transferring data
         class ConnectedThread extends Thread {
             private final BluetoothSocket mmSocket;
             private final InputStream mmInStream;
             private final OutputStream mmOutStream;
             public ConnectedThread(BluetoothSocket socket) {
+                Toast.makeText(Dashboard.this,"Test 6", Toast.LENGTH_SHORT).show();
                 mmSocket = socket;
                 InputStream tmpIn = null;
                 OutputStream tmpOut = null;
@@ -99,6 +58,7 @@ public class Dashboard extends AppCompatActivity {
                 mmOutStream = tmpOut;
             }
             public void run() {
+                Toast.makeText(Dashboard.this,"Test 7", Toast.LENGTH_SHORT).show();
                 byte[] buffer = new byte[1024];
                 int begin = 0;
                 int bytes = 0;
@@ -120,8 +80,6 @@ public class Dashboard extends AppCompatActivity {
                         break;
                     }
                 }
-                ConnectedThread mConnectedThread = new ConnectedThread(mmSocket);
-                mConnectedThread.start();
             }
             public void write(byte[] bytes) {
                 try {
@@ -134,10 +92,84 @@ public class Dashboard extends AppCompatActivity {
                 } catch (IOException e) { }
             }
         }
+
+        // Thread used for connecting Bluetooth devices
+        class ConnectThread extends Thread {
+            private final BluetoothSocket mmSocket;
+            private final BluetoothDevice mmDevice;
+            private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+            public ConnectThread(BluetoothDevice device) {
+                Toast.makeText(Dashboard.this,"Test 3", Toast.LENGTH_SHORT).show();
+
+                BluetoothSocket tmp = null;
+                mmDevice = device;
+                try {
+                    tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                } catch (IOException e) { }
+                mmSocket = tmp;
+                Toast.makeText(Dashboard.this,"Test 4", Toast.LENGTH_SHORT).show();
+
+            }
+            public void run() {
+                Toast.makeText(Dashboard.this,"Test 5", Toast.LENGTH_SHORT).show();
+                mBluetoothAdapter.cancelDiscovery();
+                try {
+                    mmSocket.connect();
+                } catch (IOException connectException) {
+                    try {
+                        mmSocket.close();
+                    } catch (IOException closeException) {
+                    }
+                    Toast.makeText(Dashboard.this,"KILL ME NOW", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Toast.makeText(Dashboard.this,"Work", Toast.LENGTH_SHORT).show();
+
+                ConnectedThread mConnectedThread = new ConnectedThread(mmSocket);
+                mConnectedThread.run();
+
+                Toast.makeText(Dashboard.this,"Please work", Toast.LENGTH_SHORT).show();
+
+
+            }
+            public void cancel() {
+                try {
+                    mmSocket.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+
+        // Create the connection thread
+        // Get the Bluetooth module device
+        BluetoothDevice mDevice = null;
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                String deviceName = device.getName();
+                String deviceHardwareAddress = device.getAddress();
+                Toast.makeText(Dashboard.this,deviceName, Toast.LENGTH_SHORT).show();
+                if(deviceName.equals("Adafruit Bluefruit LE")) {
+                    mDevice = device;
+                    break;
+                }
+            }
+        }
+        Toast.makeText(Dashboard.this,"Test 1", Toast.LENGTH_SHORT).show();
+
+        ConnectThread mConnectThread = new ConnectThread(mDevice);
+        mConnectThread.run();
+
+        Toast.makeText(Dashboard.this,"Test 2", Toast.LENGTH_SHORT).show();
+
+
+
         // Handler code
         Handler mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
+                Toast.makeText(Dashboard.this,"Test 8", Toast.LENGTH_SHORT).show();
                 byte[] writeBuf = (byte[]) msg.obj;
                 int begin = msg.arg1;
                 int end = (int)msg.arg2;
@@ -149,7 +181,7 @@ public class Dashboard extends AppCompatActivity {
                         Toast.makeText(Dashboard.this, writeMessage, Toast.LENGTH_SHORT).show();
                         break;
                 }
-            }
-        };
+                        }
+                        };
     }
 }

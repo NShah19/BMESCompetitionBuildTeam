@@ -1,3 +1,12 @@
+/*#include <Adafruit_ATParser.h>
+#include <Adafruit_BluefruitLE_SPI.h>
+#include <Adafruit_BLEMIDI.h>
+#include <Adafruit_BLEBattery.h>
+#include <Adafruit_BLEGatt.h>
+#include <Adafruit_BLEEddystone.h>
+#include <Adafruit_BLE.h>
+#include <Adafruit_BluefruitLE_UART.h>*/
+
 
 /*************************************************** 
   This is an example for the Adafruit Triple-Axis Gyro sensor
@@ -55,9 +64,8 @@ void setup()
 {
   analogReference(EXTERNAL);
   Serial.begin(9600);
-  Serial.print("y");
   // Try to initialise and warn if we couldn't detect the chip
-   if (!gyro.begin(GYRO_RANGE_250DPS))
+  if (!gyro.begin(GYRO_RANGE_250DPS))
   //if (!gyro.begin(gyro.L3DS20_RANGE_500DPS))
   //if (!gyro.begin(gyro.L3DS20_RANGE_2000DPS))
   {
@@ -67,6 +75,17 @@ void setup()
 }
 
 void loop() 
+{
+  char x;
+  if (Serial.available())
+  {
+    x = Serial.read();
+    if (x == '*')
+      readSensor();
+  }
+}
+
+void readSensor()
 {
   gyro.read();
   float xRaw = lowpassFilterx.input(analogRead(xInput));
@@ -79,11 +98,11 @@ void loop()
   Rest[0] = gacc[0];
   Rest[1] = gacc[1];
   Rest[2] = gacc[2];
-  Serial.print("Xang: "); Serial.print((int)gyro.data.x);   Serial.print(" ");
-  Serial.print("Yang: "); Serial.print((int)gyro.data.y);   Serial.print(" ");
-  Serial.print("Zang: "); Serial.println((int)gyro.data.z); Serial.print(" ");
-  Serial.print("Xacc: "); Serial.print(gacc[0]); Serial.print(" ");
-  Serial.print("Yacc: "); Serial.print(gacc[1]); Serial.print(" ");
-  Serial.print("Zacc: "); Serial.print(gacc[2]); Serial.print(" ");
+  Serial.print("Xang: " + (int)gyro.data.x + " ");
+  Serial.print("Yang: " + (int)gyro.data.y + " ");
+  Serial.println("Zang: " + (int)gyro.data.z);
+  Serial.print("Xacc: " + gacc[0] + " ");
+  Serial.print("Yacc: " + gacc[1] + " ");
+  Serial.println("Zacc: " + gacc[2] + " ");
   delay(10);
 }

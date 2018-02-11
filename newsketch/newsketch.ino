@@ -6,11 +6,12 @@
 #include <Adafruit_BLEEddystone.h>
 #include <Adafruit_BLE.h>
 #include <Adafruit_BluefruitLE_UART.h>
-#include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
+#include <SPI.h>
 
+#include <Arduino.h>
 /* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
    which provides a common 'type' for sensor data and some helper functions.
 
@@ -40,6 +41,7 @@
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
+Adafruit_BluefruitLE_SPI ble(8, 7, 4);
 /**************************************************************************/
 /*
     Displays some basic information on this sensor from the unified
@@ -71,7 +73,7 @@ void setup(void)
 {
   Serial.begin(115200);
   Serial.println("Orientation Sensor Test"); Serial.println("");
-
+  ble.begin(true);
   /* Initialise the sensor */
   if(!bno.begin())
   {
@@ -87,6 +89,7 @@ void setup(void)
    
   /* Display some basic information on this sensor */
   displaySensorDetails();
+  ble.setMode(BLUEFRUIT_MODE_DATA);
 }
 
 /**************************************************************************/
@@ -115,11 +118,11 @@ void loop(void)
   /* The processing sketch expects data as roll, pitch, heading */
   Serial.print(F("Orientation: "));
   Serial.print((float)event.orientation.x);
-  Serial.print(F(" "));
-  Serial.print((float)event.orientation.y);
-  Serial.print(F(" "));
-  Serial.print((float)event.orientation.z);
-  Serial.println(F(""));
+  ble.print(F(" "));
+  ble.print((float)event.orientation.y);
+  ble.print(F(" "));
+  ble.print((float)event.orientation.z);
+  ble.println(F(""));
 
   /* Also send calibration data for each sensor. */
   uint8_t sys, gyro, accel, mag = 0;

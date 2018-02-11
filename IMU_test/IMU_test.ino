@@ -98,11 +98,11 @@ void readSensor()
   Rest[0] = gacc[0];
   Rest[1] = gacc[1];
   Rest[2] = gacc[2];
-  Serial.print("Xang: " + (int)gyro.data.x + " ");
-  Serial.print("Yang: " + (int)gyro.data.y + " ");
-  Serial.println("Zang: " + (int)gyro.data.z);
-  Serial.print("Xacc: " + gacc[0] + " ");
-  Serial.print("Yacc: " + gacc[1] + " ");
-  Serial.println("Zacc: " + gacc[2] + " ");
+  Serial.print("Xang: "); Serial.print((int)gyro.data.x); Serial.print(" ");
+  Serial.print("Yang: "); Serial.print((int)gyro.data.y); Serial.print(" ");
+  Serial.println("Zang: "); Serial.print((int)gyro.data.z);
+  Serial.print("Xacc: "); Serial.print(gacc[0]); Serial.print(" ");
+  Serial.print("Yacc: "); Serial.print(gacc[1]); Serial.print(" ");
+  Serial.println("Zacc: "); Serial.print(gacc[2]); Serial.print(" ");
   delay(10);
 }

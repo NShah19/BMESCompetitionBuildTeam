@@ -127,7 +127,7 @@ public class Dashboard extends AppCompatActivity {
                 Toast.makeText(Dashboard.this,"Work", Toast.LENGTH_SHORT).show();
 
                 ConnectedThread mConnectedThread = new ConnectedThread(mmSocket);
-                mConnectedThread.run();
+                mConnectedThread.start();
 
                 Toast.makeText(Dashboard.this,"Please work", Toast.LENGTH_SHORT).show();
 
@@ -150,7 +150,7 @@ public class Dashboard extends AppCompatActivity {
                 String deviceName = device.getName();
                 String deviceHardwareAddress = device.getAddress();
                 Toast.makeText(Dashboard.this,deviceName, Toast.LENGTH_SHORT).show();
-                if(deviceName.equals("Adafruit Bluefruit LE")) {
+                if(deviceName.equals("Adafruit Bluefruit LE EA38")) {
                     mDevice = device;
                     break;
                 }
@@ -159,7 +159,12 @@ public class Dashboard extends AppCompatActivity {
         Toast.makeText(Dashboard.this,"Test 1", Toast.LENGTH_SHORT).show();
 
         ConnectThread mConnectThread = new ConnectThread(mDevice);
-        mConnectThread.run();
+        mConnectThread.start();
+        try {
+            mConnectThread.join();
+        } catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
 
         Toast.makeText(Dashboard.this,"Test 2", Toast.LENGTH_SHORT).show();
 

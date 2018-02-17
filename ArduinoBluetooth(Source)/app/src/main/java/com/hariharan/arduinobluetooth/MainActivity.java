@@ -20,7 +20,7 @@ import java.util.UUID;
 
 public class MainActivity extends Activity {
 //    private final String DEVICE_NAME="MyBTBee";
-    private final String DEVICE_ADDRESS="20:13:10:15:33:66";
+    private final String DEVICE_NAME="Arduino Bluetooth LE EA38";
     private final UUID PORT_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");//Serial Port Service ID
     private BluetoothDevice device;
     private BluetoothSocket socket;
@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
         {
             for (BluetoothDevice iterator : bondedDevices)
             {
-                if(iterator.getAddress().equals(DEVICE_ADDRESS))
+                if(iterator.getName().equals(DEVICE_NAME))
                 {
                     device=iterator;
                     found=true;

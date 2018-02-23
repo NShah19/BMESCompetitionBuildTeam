@@ -1,192 +1,130 @@
 package com.example.nilay.bmescompetitionbuildteam;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
-import android.os.Handler;
-import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.UUID;
-
 public class Dashboard extends AppCompatActivity {
+
+    private static final int SCAN_PERIOD = 5000;
+    private boolean scanning = false;
+    private TextView mainText;
+    private Handler handler;
+    private BluetoothAdapter bluetoothAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
 
+        mainText = findViewById(R.id.main_text);
+
+        handler = new Handler();
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Permission is not granted
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed; request the permission
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        1234);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        } else {
+            // Permission has already been granted
+        }
+
+        Button startScanButton = findViewById(R.id.start_scan_button);
+        startScanButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                scanLeDevice(true);
+            }
+        });
+
         // Determine if Android device supports Bluetooth
-        final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(),"Device doesn't Support Bluetooth", Toast.LENGTH_SHORT).show();
         // Device does not support Bluetooth
         }
 
         // Turn on Bluetooth if disabled
-        if (!mBluetoothAdapter.isEnabled()) {
+        if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, 1);
         }
 
         Toast.makeText(Dashboard.this,"ACP Pradyuman is the BEAST", Toast.LENGTH_SHORT).show();
+    }
 
+    private void scanLeDevice(final boolean enable) {
+        if (enable) {
+            // Stops scanning after a pre-defined scan period.
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    scanning = false;
+                    bluetoothAdapter.stopLeScan(mLeScanCallback);
+                    invalidateOptionsMenu();
+                }
+            }, SCAN_PERIOD);
 
-        // Thread used for transferring data
-        class ConnectedThread extends Thread {
-            private final BluetoothSocket mmSocket;
-            private final InputStream mmInStream;
-            private final OutputStream mmOutStream;
-            public ConnectedThread(BluetoothSocket socket) {
-                Toast.makeText(Dashboard.this,"Test 6", Toast.LENGTH_SHORT).show();
-                mmSocket = socket;
-                InputStream tmpIn = null;
-                OutputStream tmpOut = null;
-                try {
-                    tmpIn = socket.getInputStream();
-                    tmpOut = socket.getOutputStream();
-                } catch (IOException e) { }
-                mmInStream = tmpIn;
-                mmOutStream = tmpOut;
-            }
-            public void run() {
-                Toast.makeText(Dashboard.this,"Test 7", Toast.LENGTH_SHORT).show();
-                byte[] buffer = new byte[1024];
-                int begin = 0;
-                int bytes = 0;
-                while (true) {
-                    try {
-                        bytes += mmInStream.read(buffer, bytes, buffer.length - bytes);
-                        for(int i = begin; i < bytes; i++) {
-                            if(buffer[i] == "#".getBytes()[0]) {
-                                Handler mHandler = null;
-                                mHandler.obtainMessage(1, begin, i, buffer).sendToTarget();
-                                begin = i + 1;
-                                if(i == bytes - 1) {
-                                    bytes = 0;
-                                    begin = 0;
-                                }
-                            }
+            scanning = true;
+            bluetoothAdapter.startLeScan(mLeScanCallback);
+        } else {
+            scanning = false;
+            bluetoothAdapter.stopLeScan(mLeScanCallback);
+        }
+        invalidateOptionsMenu();
+    }
+
+    // Device scan callback.
+    private BluetoothAdapter.LeScanCallback mLeScanCallback =
+            new BluetoothAdapter.LeScanCallback() {
+
+                @Override
+                public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (device.getName().equals("Adafruit Bluefruit LE EA38"))
+                                Log.e("Dashboard", "found: " + device.getAddress() + " " + device.getName());
                         }
-                    } catch (IOException e) {
-                        break;
-                    }
+                    });
                 }
-            }
-            public void write(byte[] bytes) {
-                try {
-                    mmOutStream.write(bytes);
-                } catch (IOException e) { }
-            }
-            public void cancel() {
-                try {
-                    mmSocket.close();
-                } catch (IOException e) { }
-            }
-        }
+            };
 
-        // Thread used for connecting Bluetooth devices
-        class ConnectThread extends Thread {
-            private final BluetoothSocket mmSocket;
-            private final BluetoothDevice mmDevice;
-            private final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-            public ConnectThread(BluetoothDevice device) {
-                Toast.makeText(Dashboard.this,"Test 3", Toast.LENGTH_SHORT).show();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.v("Dashboard", "got activity result: " + resultCode);
 
-                BluetoothSocket tmp = null;
-                mmDevice = device;
-                try {
-                    tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
-                } catch (IOException e) { }
-                mmSocket = tmp;
-                Toast.makeText(Dashboard.this,"Test 4", Toast.LENGTH_SHORT).show();
-
-            }
-            public void run() {
-                Toast.makeText(Dashboard.this,"Test 5", Toast.LENGTH_SHORT).show();
-                mBluetoothAdapter.cancelDiscovery();
-                try {
-                    mmSocket.connect();
-                } catch (IOException connectException) {
-                    try {
-                        mmSocket.close();
-                    } catch (IOException closeException) {
-                    }
-                    Toast.makeText(Dashboard.this,"KILL ME NOW", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                Toast.makeText(Dashboard.this,"Work", Toast.LENGTH_SHORT).show();
-
-                ConnectedThread mConnectedThread = new ConnectedThread(mmSocket);
-                mConnectedThread.start();
-
-                Toast.makeText(Dashboard.this,"Please work", Toast.LENGTH_SHORT).show();
-
-
-            }
-            public void cancel() {
-                try {
-                    mmSocket.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-
-        // Create the connection thread
-        // Get the Bluetooth module device
-        BluetoothDevice mDevice = null;
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        if (pairedDevices.size() > 0) {
-            for (BluetoothDevice device : pairedDevices) {
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress();
-                Toast.makeText(Dashboard.this,deviceName, Toast.LENGTH_SHORT).show();
-                if(deviceName.equals("Adafruit Bluefruit LE EA38")) {
-                    mDevice = device;
-                    break;
-                }
-            }
-        }
-        Toast.makeText(Dashboard.this,"Test 1", Toast.LENGTH_SHORT).show();
-
-        ConnectThread mConnectThread = new ConnectThread(mDevice);
-        mConnectThread.start();
-        try {
-            mConnectThread.join();
-        } catch (InterruptedException ie) {
-            ie.printStackTrace();
-        }
-
-        Toast.makeText(Dashboard.this,"Test 2", Toast.LENGTH_SHORT).show();
-
-
-
-        // Handler code
-        Handler mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                Toast.makeText(Dashboard.this,"Test 8", Toast.LENGTH_SHORT).show();
-                byte[] writeBuf = (byte[]) msg.obj;
-                int begin = msg.arg1;
-                int end = (int)msg.arg2;
-
-                switch(msg.what) {
-                    case 1:
-                        String writeMessage = new String(writeBuf);
-                        writeMessage = writeMessage.substring(begin, end);
-                        Toast.makeText(Dashboard.this, writeMessage, Toast.LENGTH_SHORT).show();
-                        break;
-                }
-                        }
-                        };
     }
 }

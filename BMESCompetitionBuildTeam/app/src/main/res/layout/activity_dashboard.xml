@@ -7,6 +7,7 @@
     tools:context="com.example.nilay.bmescompetitionbuildteam.Dashboard">
 
     <TextView
+        android:id="@+id/main_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ACP Pradyuman!"
@@ -14,5 +15,12 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/start_scan_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start scan"
+        app:layout_constraintTop_toBottomOf="@id/main_text"/>
 
 </android.support.constraint.ConstraintLayout>

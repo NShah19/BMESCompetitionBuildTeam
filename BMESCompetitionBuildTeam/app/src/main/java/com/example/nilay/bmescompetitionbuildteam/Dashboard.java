@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,6 +24,7 @@ public class Dashboard extends AppCompatActivity {
     private TextView mainText;
     private Handler handler;
     private BluetoothAdapter bluetoothAdapter;
+    private BLECustomService bleCustomService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,7 @@ public class Dashboard extends AppCompatActivity {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(),"Device doesn't Support Bluetooth", Toast.LENGTH_SHORT).show();
+            finish();
         // Device does not support Bluetooth
         }
 
@@ -82,7 +85,7 @@ public class Dashboard extends AppCompatActivity {
             startActivityForResult(enableBtIntent, 1);
         }
 
-        Toast.makeText(Dashboard.this,"ACP Pradyuman is the BEAST", Toast.LENGTH_SHORT).show();
+        bleCustomService = new BLECustomService(this);
     }
 
     private void scanLeDevice(final boolean enable) {
@@ -115,8 +118,9 @@ public class Dashboard extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (device.getName().equals("Adafruit Bluefruit LE EA38"))
+                            if (!TextUtils.isEmpty(device.getName()) && device.getName().equals("Adafruit Bluefruit LE EA38"))
                                 Log.e("Dashboard", "found: " + device.getAddress() + " " + device.getName());
+                                bleCustomService.connect(device.getAddress());
                         }
                     });
                 }
@@ -126,5 +130,12 @@ public class Dashboard extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.v("Dashboard", "got activity result: " + resultCode);
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        bleCustomService.disconnect();
+        bleCustomService.close();
     }
 }

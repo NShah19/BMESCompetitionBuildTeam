@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -33,7 +34,9 @@ public class Dashboard extends AppCompatActivity {
 
         mainText = findViewById(R.id.main_text);
 
-        handler = new Handler();
+        HandlerThread handlerThread = new HandlerThread("ble");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -109,6 +112,8 @@ public class Dashboard extends AppCompatActivity {
         invalidateOptionsMenu();
     }
 
+    private boolean connected;
+
     // Device scan callback.
     private BluetoothAdapter.LeScanCallback mLeScanCallback =
             new BluetoothAdapter.LeScanCallback() {
@@ -120,7 +125,16 @@ public class Dashboard extends AppCompatActivity {
                         public void run() {
                             if (!TextUtils.isEmpty(device.getName()) && device.getName().equals("Adafruit Bluefruit LE EA38"))
                                 Log.e("Dashboard", "found: " + device.getAddress() + " " + device.getName());
-                                bleCustomService.connect(device.getAddress());
+                                bluetoothAdapter.stopLeScan(mLeScanCallback);
+                                if (!connected) {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            bleCustomService.connect(device.getAddress());
+                                        }
+                                    });
+                                }
+                                connected = true;
                         }
                     });
                 }

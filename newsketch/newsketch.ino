@@ -115,14 +115,21 @@ void loop(void)
          +----------+
   */
 
-  /* The processing sketch expects data as roll, pitch, heading */
-  Serial.print(F("Orientation: "));
-  Serial.print((float)event.orientation.x);
-  ble.print(F(" "));
-  ble.print((float)event.orientation.y);
-  ble.print(F(" "));
-  ble.print((float)event.orientation.z);
-  ble.println(F(""));
+/*The .getQuat function returns a Quaternion, which is often easier and more accurate to work
+with than Euler angles when doing sensor fusion or data manipulation with raw sensor data.*/
+  
+  imu::Quaternion quat = bno.getQuat();
+  
+  /* Display the quat data */
+  ble.print("qW: ");
+  ble.print(quat.w(), 4);
+  ble.print(" qX: ");
+  ble.print(quat.y(), 4);
+  ble.print(" qY: ");
+  ble.print(quat.x(), 4);
+  ble.print(" qZ: ");
+  ble.print(quat.z(), 4);
+  ble.println("");
 
   /* Also send calibration data for each sensor. */
   uint8_t sys, gyro, accel, mag = 0;

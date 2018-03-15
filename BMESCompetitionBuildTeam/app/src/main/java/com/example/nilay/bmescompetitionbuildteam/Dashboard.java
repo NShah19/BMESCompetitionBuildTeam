@@ -118,9 +118,11 @@ public class Dashboard extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if (!TextUtils.isEmpty(device.getName()) && device.getName().equals("Adafruit Bluefruit LE EA38"))
+                            if (!TextUtils.isEmpty(device.getName()) && device.getAddress().equals("ED:8A:50:90:EA:38")) {
                                 Log.e("Dashboard", "found: " + device.getAddress() + " " + device.getName());
+                                scanLeDevice(false);
                                 bleCustomService.connect(device.getAddress());
+                            }
                         }
                     });
                 }

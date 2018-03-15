@@ -68,11 +68,11 @@ public class BLECustomService {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
-                onConnected();
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" +
-                        mBluetoothGatt.discoverServices());
+                        gatt.discoverServices());
+                onConnected();
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
@@ -87,7 +87,10 @@ public class BLECustomService {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.v(TAG, "Discovered service, registering notifications");
                 //broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
-                setCharacteristicNotification(gatt.getService(UUID_UART_SERVICE).getCharacteristic(UUID_RX_CHAR), true);
+                for (BluetoothGattService serv : mBluetoothGatt.getServices()) {
+                    Log.e(TAG, "service: " + serv.getUuid().toString() + " " + serv.getCharacteristics().size());
+                }
+                enableNotifications();
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
@@ -157,6 +160,11 @@ public class BLECustomService {
      *         callback.
      */
     public boolean connect(final String address) {
+        if(mConnectionState == STATE_CONNECTED || mConnectionState == STATE_CONNECTING) {
+            Log.w(TAG,"Attempting to connect when connected");
+            return false;
+        }
+
         if (mBluetoothAdapter == null || address == null) {
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
             return false;
@@ -181,7 +189,7 @@ public class BLECustomService {
         }
         // We want to directly connect to the device, so we are setting the autoConnect
         // parameter to false.
-        mBluetoothGatt = device.connectGatt(context, false, mGattCallback);
+        mBluetoothGatt = device.connectGatt(context, false, mGattCallback, BluetoothDevice.TRANSPORT_LE);
         Log.d(TAG, "Trying to create a new connection.");
         mBluetoothDeviceAddress = address;
         mConnectionState = STATE_CONNECTING;
@@ -229,26 +237,28 @@ public class BLECustomService {
         mBluetoothGatt.readCharacteristic(characteristic);
     }
 
-    /**
-     * Enables or disables notification on a give characteristic.
-     *
-     * @param characteristic Characteristic to act on.
-     * @param enabled If true, enable notification.  False otherwise.
-     */
-    public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
-                                              boolean enabled) {
+    public void enableNotifications() {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
-        mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
-
-        // This is specific to Heart Rate Measurement.
-        if (UUID_RX_CHAR.equals(characteristic.getUuid())) {
-            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CCCD_UUID);
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            mBluetoothGatt.writeDescriptor(descriptor);
+        BluetoothGattService rxService = mBluetoothGatt.getService(UUID_UART_SERVICE);
+        if (rxService == null) {
+            Log.e(TAG, "got null UART service when enabling notifs");
+            return;
         }
+
+        BluetoothGattCharacteristic rxChar = rxService.getCharacteristic(UUID_RX_CHAR);
+        if (rxChar == null) {
+            Log.e(TAG, "got null RX characteristic when enabling notifs");
+            return;
+        }
+
+        mBluetoothGatt.setCharacteristicNotification(rxChar, true);
+
+        BluetoothGattDescriptor descriptor = rxChar.getDescriptor(CCCD_UUID);
+        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+        mBluetoothGatt.writeDescriptor(descriptor);
     }
 
     /**

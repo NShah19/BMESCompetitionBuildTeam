@@ -8,6 +8,7 @@
 Adafruit_BNO055 bnoA = Adafruit_BNO055(-1, BNO055_ADDRESS_A);
 Adafruit_BNO055 bnoB = Adafruit_BNO055(-1, BNO055_ADDRESS_B);
 bool calibrated = false;
+angleThreshold = 2
 
 void setup() {
    Serial.begin(115200);
@@ -67,6 +68,16 @@ void displayCalStatus(Adafruit_BNO055 bno)
   Serial.println(mag, DEC);
 }
 
+//-------------------------------------------------------------------
+//TO DO: find the angle given two roation matrices between the x axis
+//--------------------------------------------------------------------
+
+float angleBetweenX(rot_matA, rot_matB)
+{
+  return -1.0
+}
+
+
 void loop() {
    if (!calibrated)
     calibrated = calibrateSensors(bnoA,bnoB);
@@ -76,28 +87,14 @@ void loop() {
 
    imu::Matrix<3> rot_matA = quatA.toMatrix();
    imu::Matrix<3> rot_matB = quatB.toMatrix();
-    
+   xAngle = angleBetweenX(rot_matA, rot_matB);
+   if (xAngle < angleThreshold && xAngle > angleThreshold)
+   {
+      Serial.print("good")
+   }
+   else
+   {
+      Serial.print("bad")
+   }
    delay(500);
-   /*
-   Serial.print("qW: ");
-   Serial.print(quatA.w(), 4);
-   Serial.print(" qX: ");
-   Serial.print(quatA.y(), 4);
-   Serial.print(" qY: ");
-   Serial.print(quatA.x(), 4);
-   Serial.print(" qZ: ");
-   Serial.print(quatA.z(), 4);
-   Serial.println("");
-
-   Serial.print("qW: ");
-   Serial.print(quatB.w(), 4);
-   Serial.print(" qX: ");
-   Serial.print(quatB.y(), 4);
-   Serial.print(" qY: ");
-   Serial.print(quatB.x(), 4);
-   Serial.print(" qZ: ");
-   Serial.print(quatB.z(), 4);
-   Serial.println("");
-   delay(500); */
-   
 }

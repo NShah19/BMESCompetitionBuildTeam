@@ -2,13 +2,13 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
-
+#include <Math.h>
 // The two BNO055 modules, bnoB has the ADR pin wired to 3.3v to change its i2c address
 // Both are wired: SCL to analog 5, SDA to analog 4, VIN to 5v, GRN to ground
 Adafruit_BNO055 bnoA = Adafruit_BNO055(-1, BNO055_ADDRESS_A);
 Adafruit_BNO055 bnoB = Adafruit_BNO055(-1, BNO055_ADDRESS_B);
 bool calibrated = false;
-angleThreshold = 2
+double angleThreshold = 2.0;
 
 void setup() {
    Serial.begin(115200);
@@ -72,9 +72,13 @@ void displayCalStatus(Adafruit_BNO055 bno)
 //TO DO: find the angle given two roation matrices between the x axis
 //--------------------------------------------------------------------
 
-float angleBetweenX(rot_matA, rot_matB)
+double angleBetweenX( imu::Matrix<3> rot_matA,imu::Matrix<3> rot_matB)
 {
-  return -1.0
+  imu::Vector<3> firstXaxis = rot_matA.col_to_vector(0);
+  imu::Vector<3> secondXaxis = rot_matB.col_to_vector(0);
+  double dot_prod = firstXaxis.dot(secondXaxis);
+  Serial.print(acos(dot_prod)*180.0/3.14159);
+  return acos(dot_prod)*180.0/3.14159;
 }
 
 
@@ -87,14 +91,14 @@ void loop() {
 
    imu::Matrix<3> rot_matA = quatA.toMatrix();
    imu::Matrix<3> rot_matB = quatB.toMatrix();
-   xAngle = angleBetweenX(rot_matA, rot_matB);
-   if (xAngle < angleThreshold && xAngle > angleThreshold)
+   double xAngle = angleBetweenX(rot_matA, rot_matB);
+   if (xAngle < angleThreshold && xAngle > -angleThreshold)
    {
-      Serial.print("good")
+      Serial.println("good");
    }
    else
    {
-      Serial.print("bad")
+      Serial.println("bad");
    }
    delay(500);
 }

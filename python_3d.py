@@ -189,7 +189,7 @@ def draw(calibs):
     #print([ax-bx,ay-by,az-bz])
     
     np.set_printoptions(precision=2)
-    print((x1-x2,y1-y2,z1-z2))
+    print((y1,y2,y1-y2))
     
     start_point = np.array([0.0,0.0,0.5])
     '''
@@ -210,10 +210,10 @@ def draw(calibs):
     #x and y deviation determined by x and y angles we are going to have the calf by .8 long
     vrtx_calf = np.array(z_mat @ y_mat @ x_mat @ col_vect).flatten() + start_point
     '''
-    x_coord = .7*np.sin(x3)*np.cos(y3)
-    y_coord = .7*np.sin(x3)*np.sin(y3)
-    z_coord = .7*np.cos(x3)
-    vrtx_calf = [x_coord,y_coord,z_coord+1] + start_point
+    x_coord = .7*np.sin(x3)#*np.cos(y3)
+    y_coord = .7*np.sin(y3)
+    z_coord = .7*np.cos(x3)*np.cos(y3)
+    vrtx_calf = [x_coord,y_coord,z_coord] + start_point
     
     
     glBegin(GL_TRIANGLES)

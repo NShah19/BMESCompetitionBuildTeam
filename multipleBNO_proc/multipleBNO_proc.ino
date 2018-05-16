@@ -1,9 +1,9 @@
 #include <Wire.h>
+#include <EEPROM.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
 #include <utility/imumaths.h>
 #include <Math.h>
-#define FREQ  30.0
 // The two BNO055 modules, bnoB has the ADR pin wired to 3.3v to change its i2c address
 // Both are wired: SCL to analog 5, SDA to analog 4, VIN to 5v, GRN to ground
 Adafruit_BNO055 bnoA = Adafruit_BNO055(-1, BNO055_ADDRESS_A);
@@ -132,59 +132,13 @@ void setup() {
 }
 
 void loop() {
-   unsigned long start_time, end_time;
-   start_time = millis();
-   /*
+   
    imu::Quaternion quatA = bnoA.getQuat();
    imu::Quaternion quatB = bnoB.getQuat();
 
    imu::Matrix<3> rot_matA = quatA.toMatrix();
    imu::Matrix<3> rot_matB = quatB.toMatrix();
-   
-   double BxAngle = angleBetweenX(rot_matA, rot_matB);
-   double ByAngle = angleBetweenY(rot_matA, rot_matB);
-   double BzAngle = angleBetweenZ(rot_matA, rot_matB);*/
-
-   sensors_event_t event2;
-   bnoB.getEvent(&event2);
-   double BxAngle = event2.orientation.x;
-   double ByAngle = event2.orientation.y;
-   double BzAngle = event2.orientation.z;
-   
-   sensors_event_t event;
-   bnoA.getEvent(&event);
-   double AxAngle = event.orientation.x;
-   double AyAngle = event.orientation.y;
-   double AzAngle = event.orientation.z;
-   // check if there is some kind of request 
-   // from the other side...
-   if(Serial.available())
-   {
-    char rx_char;
-    // dummy read
-    rx_char = Serial.read();
-    // we have to send data, as requested
-    if (rx_char == '.'){
-      digitalWrite(13, HIGH);
-      Serial.print(AxAngle, 2);
-      Serial.print(", ");
-      Serial.print(AyAngle, 2);
-      Serial.print(", ");
-      Serial.print(AzAngle, 2);
-      Serial.print(", ");
-      Serial.print(BxAngle, 2);
-      Serial.print(", ");
-      Serial.print(ByAngle, 2);
-      Serial.print(", ");
-      Serial.println(BzAngle, 2);
-      digitalWrite(13, LOW);
-    }
-    
-   }
-   
-   end_time = millis();
-
-   // remaining time to complete sample time
-   delay(((1/FREQ) * 1000) - (end_time - start_time));
-   //Serial.println(end_time - start_time);
+   double output_list[] = {quatA.w(),quatA.x(),quatA.y(),quatA.z()};
+   Serial.write(output_list, 4);
+   delay(500);
 }

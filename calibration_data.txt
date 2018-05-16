@@ -1,0 +1,13 @@
+bnoA
+Accelerometer: 1 -21 -35 
+Gyro: -2 2 0 
+Mag: -319 145 24 
+Accel Radius: 1000
+Mag Radius: 587
+
+bnoB
+Accelerometer: 1 -21 -35 
+Gyro: -2 2 0 
+Mag: -319 145 24 
+Accel Radius: 1000
+Mag Radius: 587

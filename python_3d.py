@@ -105,9 +105,9 @@ def draw(calibs):
 
     drawText((-2,-2, 2), osd_line) #draws the line to show pitch roll and yaw of primary piece
     
-    glRotatef(-1*y1, 1.0, 0.0, 0.0)  # Yaw,   rotate around x-axis
-    glRotatef( x1  , 0.0, 1.0, 0.0)    # Pitch, rotate around y-axis
-    glRotatef(z1   , 0.0, 0.0, 1.0)    # Roll,  rotate around z-axis
+    glRotatef(y1  , 1.0, 0.0, 0.0)  # Yaw,   rotate around x-axis
+    glRotatef(x1  , 0.0, 1.0, 0.0)    # Pitch, rotate around y-axis
+    glRotatef(z1  , 0.0, 0.0, 1.0)    # Roll,  rotate around z-axis
 
     glBegin(GL_QUADS)	
     glColor3f(1,.6,.6) #salmon side 1A
@@ -189,7 +189,8 @@ def draw(calibs):
     #print([ax-bx,ay-by,az-bz])
     
     np.set_printoptions(precision=2)
-    print((y1,y2,y1-y2))
+    if np.abs(y3*180/np.pi) > 5
+    #print((x3,y3,z3))
     
     start_point = np.array([0.0,0.0,0.5])
     '''

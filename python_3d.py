@@ -7,7 +7,7 @@ from pygame.locals import *
 import serial
 import numpy as np
 
-ser = serial.Serial('COM8', 115200, timeout=1)
+ser = serial.Serial('/dev/tty.usbmodem1421', 115200, timeout=1)
 
 ax = ay = az = 0.0
 yaw_mode = False
@@ -189,7 +189,7 @@ def draw(calibs):
     #print([ax-bx,ay-by,az-bz])
     
     np.set_printoptions(precision=2)
-    if np.abs(y3*180/np.pi) > 5
+    #if np.abs(y3*180/np.pi) > 5
     #print((x3,y3,z3))
     
     start_point = np.array([0.0,0.0,0.5])
@@ -215,44 +215,77 @@ def draw(calibs):
     y_coord = .7*np.sin(y3)
     z_coord = .7*np.cos(x3)*np.cos(y3)
     vrtx_calf = [x_coord,y_coord,z_coord] + start_point
+
+    z3_deg = (180 / np.pi) * z3
+
+    if z3_deg > 10 or z3_deg < -10:
+        glBegin(GL_TRIANGLES)
+    
+        glColor3f(1,0,0)
+        glVertex3f( 0.2, 0.2, 0.5)
+        glVertex3f( 0.2,-0.2, 0.5)      
+        glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
+        
+        glColor3f(1,0,0)
+        glVertex3f( 0.2, 0.2, 0.5)
+        glVertex3f(-0.2, 0.2, 0.5)      
+        glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
+        
+        glColor3f(1,0,0)
+        glVertex3f(-0.2, 0.2, 0.5)
+        glVertex3f(-0.2,-0.2, 0.5)      
+        glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
+        
+        glColor3f(1,0,0)
+        glVertex3f( 0.2,-0.2, 0.5)
+        glVertex3f(-0.2,-0.2, 0.5)      
+        glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
+        glEnd()
+
+        deviation = z3_deg - 10
+        drawText((-2,-2, 2), "Deviation of " + str("{0:.2f}".format(deviation)) + " detected!")
+
+        return
     
     
-    glBegin(GL_TRIANGLES)
-    
-    glColor3f(1,1,1)
-    glVertex3f( 0.2, 0.2, 0.5)
-    glVertex3f( 0.2,-0.2, 0.5)		
-    glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
-    
-    glColor3f(.4,.4,.4)
-    glVertex3f( 0.2, 0.2, 0.5)
-    glVertex3f(-0.2, 0.2, 0.5)		
-    glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
-    
-    glColor3f(.6,.6, .6)
-    glVertex3f(-0.2, 0.2, 0.5)
-    glVertex3f(-0.2,-0.2, 0.5)		
-    glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
-    
-    glColor3f(.8,.8,.8)
-    glVertex3f( 0.2,-0.2, 0.5)
-    glVertex3f(-0.2,-0.2, 0.5)		
-    glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
-    glEnd()
+    else:
+        glBegin(GL_TRIANGLES)
+        
+        glColor3f(1,1,1)
+        glVertex3f( 0.2, 0.2, 0.5)
+        glVertex3f( 0.2,-0.2, 0.5)		
+        glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
+        
+        glColor3f(.4,.4,.4)
+        glVertex3f( 0.2, 0.2, 0.5)
+        glVertex3f(-0.2, 0.2, 0.5)		
+        glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
+        
+        glColor3f(.6,.6, .6)
+        glVertex3f(-0.2, 0.2, 0.5)
+        glVertex3f(-0.2,-0.2, 0.5)		
+        glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
+        
+        glColor3f(.8,.8,.8)
+        glVertex3f( 0.2,-0.2, 0.5)
+        glVertex3f(-0.2,-0.2, 0.5)		
+        glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
+        glEnd()
     
 def normalize_vector(vector):
     length = np.sqrt(vector[0]**2+vector[1]**2+vector[2]**2)
     return (vector[0]/length, vector[1]/length, vector[2]/length)
+
 def read_data():
     global ax, ay, az, bx, by, bz
     ax = ay = az = bx = by = bz = 0.0
     line_done = False
 
     # request data by sending a dot
-    ser.write('.'.encode('utf-8'))
+    ser.write(".".encode('utf-8'))
     #while not line_done:
-    line = ser.readline() 
-    angles = line.split(", ".encode('utf-8'))
+    line = ser.readline().decode("utf-8")
+    angles = line.split(", ")
     if len(angles) == 6:    
         ax = float(angles[0])
         ay = float(angles[1])
@@ -261,8 +294,12 @@ def read_data():
         by = float(angles[4])
         bz = float(angles[5])
         line_done = True
-    #print('Primary sensor XYZ: {}, '.format(ax) + '{}, '.format(ay) + str(az) + 
-    #     ' Secondary sensor XYZ: {}, '.format(bx) + '{}, '.format(by) + str(bz))
+    if az < 0:
+        az += 360
+    if bz < 0:
+        bz += 360
+    print('Primary sensor XYZ: {}, '.format(ax) + '{}, '.format(ay) + str(az) + 
+         ' Secondary sensor XYZ: {}, '.format(bx) + '{}, '.format(by) + str(bz))
          
 def calibrate():
     currang = [ 0, 0, 0, 0, 0, 0]

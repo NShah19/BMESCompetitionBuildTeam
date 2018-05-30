@@ -216,9 +216,9 @@ def draw(calibs):
     z_coord = .7*np.cos(x3)*np.cos(y3)
     vrtx_calf = [x_coord,y_coord,z_coord] + start_point
 
-    z3_deg = (180 / np.pi) * z3
+    y3_deg = (180 / np.pi) * y3
 
-    if z3_deg > 10 or z3_deg < -10:
+    if y3_deg > 10 or y3_deg < -10:
         glBegin(GL_TRIANGLES)
     
         glColor3f(1,0,0)
@@ -242,8 +242,12 @@ def draw(calibs):
         glVertex3f(vrtx_calf[0],vrtx_calf[1], vrtx_calf[2])
         glEnd()
 
-        deviation = z3_deg - 10
-        drawText((-2,-2, 2), "Deviation of " + str("{0:.2f}".format(deviation)) + " detected!")
+        if y3_deg > 0:
+            deviation = y3_deg - 10
+        else:
+            deviation = y3_deg + 10
+
+        drawText((-1,-1, 1), "Deviation of " + str("{0:.2f}".format(deviation)) + " degrees detected!")
 
         return
     
